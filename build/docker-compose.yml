@@ -1,0 +1,21 @@
+version: "3.3"
+services:
+  # rss:
+  #   image: "rss:latest"
+  #   container_name: rss     
+  #   ports:
+  #     - "8082:8082"
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: test
+      MONGO_INITDB_ROOT_PASSWORD: test
+    volumes:
+      - mongovolume_rss:/data/db:rw
+
+volumes:
+  mongovolume_rss:
