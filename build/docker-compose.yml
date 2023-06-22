@@ -1,14 +1,17 @@
 version: "3.3"
 services:
-  # rss:
-  #   image: "rss:latest"
-  #   container_name: rss     
-  #   ports:
-  #     - "8082:8082"
+  rss:
+    image: "rss:latest"
+    container_name: rss
+    ports:
+      - "8082:8082"
+    environment:
+      - MONGODB_URI=mongodb://test:test@mongo:27017
 
   mongo:
     image: mongo
     restart: always
+    container_name: mongo
     ports:
       - 27017:27017
     environment:

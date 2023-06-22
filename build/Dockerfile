@@ -1,7 +1,7 @@
 FROM alpine:latest
 
-COPY rssfilter /rssfilter
+ADD rss-linux /rss-linux
 
 EXPOSE 8082
 
-CMD [ "/rssfilter" ]
+CMD [ "/rss-linux" ]

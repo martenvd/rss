@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -21,6 +22,8 @@ func main() {
 	db := app.DB{
 		DatabaseUri: uri,
 	}
+
+	fmt.Println("The RSS feed is running!")
 
 	http.HandleFunc("/", db.CreateIndex)
 	http.HandleFunc("/api", db.CreateItemAPI)

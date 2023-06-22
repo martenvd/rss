@@ -5,13 +5,13 @@ BINARY_NAME=rss
 default: build
 
 build:
-	GOARCH=amd64 GOOS=linux go build -o ${BINARY_NAME}-linux main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o ./build/${BINARY_NAME}-linux main.go
+	docker build -t rss:latest ./build
 
 run: build
 	docker-compose -f ./build/docker-compose.yml up -d
-	./${BINARY_NAME}-linux
 
 clean:
 	go clean
 	docker-compose -f ./build/docker-compose.yml down
-	rm ${BINARY_NAME}-linux
+	rm ./build/${BINARY_NAME}-linux
