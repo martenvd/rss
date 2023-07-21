@@ -6,25 +6,25 @@ metadata:
 ##########################################
 ### USE THE FOLLOWING IF YOU USE AZURE ###
 ##########################################
-# kind: StorageClass
-# apiVersion: storage.k8s.io/v1
-# metadata:
-#   name: mongo-azurefile 
-# provisioner: file.csi.azure.com # replace with "kubernetes.io/azure-file" if aks version is less than 1.21
-# reclaimPolicy: Retain # default is Delete
-# allowVolumeExpansion: true
-# mountOptions:
-#   - dir_mode=0777
-#   - file_mode=0777
-#   - uid=999
-#   - gid=999
-#   - mfsymlinks
-#   - cache=strict
-#   - actimeo=30
-# parameters:
-#   skuName: Standard_LRS
-#   location: westeurope
-# ---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: mongo-azurefile 
+provisioner: file.csi.azure.com # replace with "kubernetes.io/azure-file" if aks version is less than 1.21
+reclaimPolicy: Retain # default is Delete
+allowVolumeExpansion: true
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - uid=999
+  - gid=999
+  - mfsymlinks
+  - cache=strict
+  - actimeo=30
+parameters:
+  skuName: Standard_LRS
+  location: westeurope
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -33,8 +33,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  # storageClassName: mongo-azurefile
-  storageClassName: default
+  storageClassName: mongo-azurefile
+  # storageClassName: default
   resources:
     requests:
       storage: 2Gi
@@ -99,8 +99,8 @@ kind: Service
 metadata:
   name: rss-svc
   namespace: rss
-  # annotations:
-  #   service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
   ports:
   - port: 80
@@ -108,4 +108,4 @@ spec:
   selector:
     app: rss
   type: LoadBalancer
-  loadBalancerIP: "10.74.24.100"
+  loadBalancerIP: "x.x.x.x"
