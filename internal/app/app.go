@@ -14,19 +14,44 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type DB struct {
+type RSSInit struct {
 	DatabaseUri string
+	Username    string
+	Password    string
 }
 
-func (db *DB) CreateIndex(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/xml")
+func (rss *RSSInit) CreateIndex(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 
-	feed := db.CreateRSSFeed()
+	u, p, ok := r.BasicAuth()
+	if !ok {
+		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
+		fmt.Println("Error parsing basic auth")
+		w.WriteHeader(401)
+		w.Write([]byte(`{"message": "No basic auth present"}`))
+		return
+	}
+	if u != rss.Username {
+		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
+		fmt.Printf("Username provided is correct: %s\n", u)
+		w.Write([]byte(`{"message": "Invalid username or password"}`))
+		w.WriteHeader(401)
+		return
+	}
+	if p != rss.Password {
+		fmt.Printf("Password provided is correct: %s\n", u)
+		w.Write([]byte(`{"message": "Invalid username or password"}`))
+		w.WriteHeader(401)
+		return
+	}
+	w.Header().Set("Content-Type", "application/xml")
+	w.WriteHeader(200)
+	feed := rss.CreateRSSFeed()
 
 	w.Write(feed)
 }
 
-func (db *DB) CreateItemAPI(w http.ResponseWriter, r *http.Request) {
+func (rss *RSSInit) CreateItemAPI(w http.ResponseWriter, r *http.Request) {
 
 	var jsonItem ItemJSON
 
@@ -38,12 +63,12 @@ func (db *DB) CreateItemAPI(w http.ResponseWriter, r *http.Request) {
 
 	bsonItem := ItemBSON(jsonItem)
 
-	db.WriteToDatabase(bsonItem, "rss", "feeditems")
+	rss.WriteToDatabase(bsonItem, "rss", "feeditems")
 }
 
-func (db *DB) WriteToDatabase(item ItemBSON, database string, collection string) error {
+func (rss *RSSInit) WriteToDatabase(item ItemBSON, database string, collection string) error {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(db.DatabaseUri).SetServerAPIOptions(serverAPI)
+	opts := options.Client().ApplyURI(rss.DatabaseUri).SetServerAPIOptions(serverAPI)
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		return err
@@ -69,24 +94,24 @@ func (db *DB) WriteToDatabase(item ItemBSON, database string, collection string)
 	return nil
 }
 
-func (db *DB) CreateRSSFeed() []byte {
+func (rss *RSSInit) CreateRSSFeed() []byte {
 	rssFeed := Rss{
 		XMLName:  xml.Name{Space: "rss"},
 		Version:  "2.0",
 		Channels: []Channel{},
 	}
 
-	items := db.GetAllFromDatabaseAndConvert()
+	items := rss.GetAllFromDatabaseAndConvert()
 
 	rssFeed.Channels = []Channel{
 		{
 			XMLName:     xml.Name{Space: "channel"},
-			Title:       "Martens test RSS Feed",
-			Link:        "https://var.tf/",
-			Description: "Martens test RSS Feed Channel",
+			Title:       "Cloud Platform RSS feed",
+			Link:        "",
+			Description: "Cloud Platform RSS feed for changelogs",
 			Atom:        "http://www.w3.org/2005/Atom",
 			AtomLink: AtomLink{
-				Href: "https://var.tf/rss",
+				Href: "",
 				Rel:  "self",
 				Type: "application/rss+xml",
 			},
@@ -100,9 +125,9 @@ func (db *DB) CreateRSSFeed() []byte {
 
 }
 
-func (db *DB) GetAllFromDatabaseAndConvert() []Item {
+func (rss *RSSInit) GetAllFromDatabaseAndConvert() []Item {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(db.DatabaseUri).SetServerAPIOptions(serverAPI)
+	opts := options.Client().ApplyURI(rss.DatabaseUri).SetServerAPIOptions(serverAPI)
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		fmt.Println(err)

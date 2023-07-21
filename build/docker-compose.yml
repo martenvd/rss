@@ -7,6 +7,8 @@ services:
       - "8082:8082"
     environment:
       - MONGODB_URI=mongodb://test:test@mongo:27017
+      - BASICAUTH_USERNAME=test
+      - BASICAUTH_PASSWORD=test
 
   mongo:
     image: mongo

@@ -14,19 +14,23 @@ import (
 func main() {
 
 	uri := os.Getenv("MONGODB_URI")
+	username := os.Getenv("BASICAUTH_USERNAME")
+	password := os.Getenv("BASICAUTH_PASSWORD")
 	// export MONGODB_URI="mongodb://username:password@localhost:27017"
 	if uri == "" {
 		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
 	}
 
-	db := app.DB{
+	rssInit := app.RSSInit{
 		DatabaseUri: uri,
+		Username:    username,
+		Password:    password,
 	}
 
 	fmt.Println("The RSS feed is running!")
 
-	http.HandleFunc("/", db.CreateIndex)
-	http.HandleFunc("/api", db.CreateItemAPI)
+	http.HandleFunc("/", rssInit.CreateIndex)
+	http.HandleFunc("/api", rssInit.CreateItemAPI)
 	http.ListenAndServe(":8082", nil)
 
 }
