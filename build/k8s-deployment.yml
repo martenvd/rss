@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rss
+---
+##########################################
+### USE THE FOLLOWING IF YOU USE AZURE ###
+##########################################
+# kind: StorageClass
+# apiVersion: storage.k8s.io/v1
+# metadata:
+#   name: mongo-azurefile 
+# provisioner: file.csi.azure.com # replace with "kubernetes.io/azure-file" if aks version is less than 1.21
+# reclaimPolicy: Retain # default is Delete
+# allowVolumeExpansion: true
+# mountOptions:
+#   - dir_mode=0777
+#   - file_mode=0777
+#   - uid=999
+#   - gid=999
+#   - mfsymlinks
+#   - cache=strict
+#   - actimeo=30
+# parameters:
+#   skuName: Standard_LRS
+#   location: westeurope
+# ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rss-pvc
+  namespace: rss
+spec:
+  accessModes:
+    - ReadWriteMany
+  # storageClassName: mongo-azurefile
+  storageClassName: default
+  resources:
+    requests:
+      storage: 2Gi
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rss
+  namespace: rss
+spec:
+  selector:
+    matchLabels:
+      app: rss
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rss
+    spec:
+      containers:
+      - image: martenvd/rss:latest
+        imagePullPolicy: IfNotPresent
+        name: rss
+        ports:
+        - containerPort: 8082
+        resources:
+          limits:
+            memory: 0.5Gi
+            cpu: 100m
+        env:
+          - name: MONGODB_URI
+            value: mongodb://test:test@localhost:27017
+          - name: BASICAUTH_USERNAME
+            value: test
+          - name: BASICAUTH_PASSWORD
+            value: test
+      - image: mongo
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: rss-data
+          mountPath: /data/db
+        name: mongo
+        ports:
+        - containerPort: 27017
+        resources:
+          limits:
+            memory: 0.5Gi
+            cpu: 100m
+        env:
+          - name: MONGO_INITDB_ROOT_USERNAME
+            value: test
+          - name: MONGO_INITDB_ROOT_PASSWORD
+            value: test
+      restartPolicy: Always
+      volumes:
+      - name: rss-data
+        persistentVolumeClaim:
+          claimName: rss-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rss-svc
+  namespace: rss
+  # annotations:
+  #   service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  ports:
+  - port: 80
+    targetPort: 8082
+  selector:
+    app: rss
+  type: LoadBalancer
+  loadBalancerIP: "10.74.24.100"
