@@ -23,6 +23,16 @@ type RSSInit struct {
 func (rss *RSSInit) CreateIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
+	rss.BasicAuth(w, r)
+
+	w.Header().Set("Content-Type", "application/xml")
+	w.WriteHeader(200)
+	feed := rss.CreateRSSFeed()
+
+	w.Write(feed)
+}
+
+func (rss *RSSInit) BasicAuth(w http.ResponseWriter, r *http.Request) {
 	u, p, ok := r.BasicAuth()
 	if !ok {
 		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
@@ -44,11 +54,6 @@ func (rss *RSSInit) CreateIndex(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
-	w.Header().Set("Content-Type", "application/xml")
-	w.WriteHeader(200)
-	feed := rss.CreateRSSFeed()
-
-	w.Write(feed)
 }
 
 func (rss *RSSInit) CreateItemAPI(w http.ResponseWriter, r *http.Request) {
