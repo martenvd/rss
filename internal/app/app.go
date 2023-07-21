@@ -169,3 +169,7 @@ func (rss *RSSInit) GetAllFromDatabaseAndConvert() []Item {
 	return items
 
 }
+
+func (rss *RSSInit) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Healthy"))
+}

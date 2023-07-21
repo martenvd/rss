@@ -31,6 +31,7 @@ func main() {
 
 	http.HandleFunc("/", rssInit.CreateIndex)
 	http.HandleFunc("/api", rssInit.CreateItemAPI)
+	http.HandleFunc("/health", rssInit.HealthCheck)
 	http.ListenAndServe(":8082", nil)
 
 }
