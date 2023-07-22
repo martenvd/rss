@@ -85,7 +85,7 @@ func (rss *RSSInit) WriteToDatabase(item ItemBSON, database string, collection s
 	}()
 
 	coll := client.Database(database).Collection(collection)
-	filter := bson.D{{Key: "title", Value: item.Title}, {Key: "link", Value: item.Link}, {Key: "description", Value: item.Description}}
+	filter := bson.D{{Key: "title", Value: item.Title}, {Key: "link", Value: item.Link}, {Key: "description", Value: item.Description}, {Key: "pubDate", Value: item.PubDate}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "title", Value: item.Title}}}}
 	options := options.Update().SetUpsert(true)
 
