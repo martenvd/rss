@@ -163,6 +163,7 @@ func (rss *RSSInit) GetAllFromDatabaseAndConvert() []Item {
 			Title:       value.Title,
 			Link:        value.Link,
 			Description: value.Description,
+			PubDate:     value.PubDate,
 		})
 	}
 

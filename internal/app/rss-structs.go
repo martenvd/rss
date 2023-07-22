@@ -36,19 +36,21 @@ type Item struct {
 	Title       string   `xml:"title"`
 	Link        string   `xml:"link,omitempty"`
 	Description string   `xml:"description"`
-	PubDate     string   `xml:"pubDate,omitempty"`
+	PubDate     string   `xml:"pubDate"`
 }
 
 type ItemJSON struct {
 	Title       string `json:"title"`
 	Link        string `json:"link,omitempty"`
 	Description string `json:"description"`
+	PubDate     string `json:"pubDate"`
 }
 
 type ItemBSON struct {
 	Title       string `bson:"title"`
 	Link        string `bson:"link,omitempty"`
 	Description string `bson:"description"`
+	PubDate     string `bson:"pubDate"`
 }
 
 type GUID struct {
