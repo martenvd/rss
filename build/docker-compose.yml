@@ -9,9 +9,11 @@ services:
       - MONGODB_URI=mongodb://test:test@mongo:27017
       - BASICAUTH_USERNAME=test
       - BASICAUTH_PASSWORD=test
+      - RSS_TITLE=testfeed
+      - RSS_DESCRIPTION=Test feed description
 
   mongo:
-    image: mongo
+    image: mongo:6.0.8
     restart: always
     container_name: mongo
     ports:

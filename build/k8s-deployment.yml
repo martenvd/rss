@@ -56,7 +56,7 @@ spec:
     spec:
       containers:
       - image: martenvd/rss:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: always
         name: rss
         ports:
         - containerPort: 8082
@@ -71,8 +71,12 @@ spec:
             value: test
           - name: BASICAUTH_PASSWORD
             value: test
-      - image: mongo
-        imagePullPolicy: IfNotPresent
+          - name: RSS_TITLE
+            value: testfeed
+          - name: RSS_DESCRIPTION
+            value: Test feed description
+      - image: mongo:6.0.8
+        imagePullPolicy: always
         volumeMounts:
         - name: rss-data
           mountPath: /data/db

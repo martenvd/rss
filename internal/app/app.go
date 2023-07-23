@@ -15,9 +15,11 @@ import (
 )
 
 type RSSInit struct {
-	DatabaseUri string
-	Username    string
-	Password    string
+	DatabaseUri    string
+	Username       string
+	Password       string
+	RssTitle       string
+	RssDescription string
 }
 
 func (rss *RSSInit) CreateIndex(w http.ResponseWriter, r *http.Request) {
@@ -129,9 +131,9 @@ func (rss *RSSInit) CreateRSSFeed() []byte {
 	rssFeed.Channels = []Channel{
 		{
 			XMLName:     xml.Name{Space: "channel"},
-			Title:       "Cloud Platform RSS feed",
+			Title:       rss.RssTitle,
 			Link:        "",
-			Description: "Cloud Platform RSS feed for changelogs",
+			Description: rss.RssDescription,
 			Atom:        "http://www.w3.org/2005/Atom",
 			AtomLink: AtomLink{
 				Href: "",
