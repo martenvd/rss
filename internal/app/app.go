@@ -89,8 +89,18 @@ func (rss *RSSInit) WriteToDatabase(item ItemBSON, database string, collection s
 	}()
 
 	coll := client.Database(database).Collection(collection)
-	filter := bson.D{{Key: "title", Value: item.Title}, {Key: "link", Value: item.Link}, {Key: "description", Value: item.Description}}
-	insert := bson.D{{Key: "$setOnInsert", Value: bson.D{{Key: "title", Value: item.Title}, {Key: "link", Value: item.Link}, {Key: "description", Value: item.Description}, {Key: "pubDate", Value: item.PubDate}}}}
+	filter := bson.D{
+		{Key: "title", Value: item.Title},
+		{Key: "link", Value: item.Link},
+		{Key: "description", Value: item.Description},
+	}
+	insert := bson.D{
+		{Key: "$setOnInsert", Value: bson.D{
+			{Key: "title", Value: item.Title},
+			{Key: "link", Value: item.Link},
+			{Key: "description", Value: item.Description},
+			{Key: "pubDate", Value: item.PubDate},
+		}}}
 	options := options.Update().SetUpsert(true)
 
 	result, err := coll.UpdateOne(context.TODO(), filter, insert, options)
