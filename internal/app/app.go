@@ -23,7 +23,10 @@ type RSSInit struct {
 func (rss *RSSInit) CreateIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
-	rss.BasicAuth(w, r)
+	err := rss.BasicAuth(w, r)
+	if err != nil {
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/xml")
 	w.WriteHeader(200)
@@ -32,28 +35,29 @@ func (rss *RSSInit) CreateIndex(w http.ResponseWriter, r *http.Request) {
 	w.Write(feed)
 }
 
-func (rss *RSSInit) BasicAuth(w http.ResponseWriter, r *http.Request) {
+func (rss *RSSInit) BasicAuth(w http.ResponseWriter, r *http.Request) error {
 	u, p, ok := r.BasicAuth()
 	if !ok {
 		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
 		fmt.Println("Error parsing basic auth")
 		w.WriteHeader(401)
 		w.Write([]byte(`{"message": "No basic auth present"}`))
-		return
+		return fmt.Errorf("no basic auth present")
 	}
 	if u != rss.Username {
 		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
 		fmt.Printf("Username provided is correct: %s\n", u)
 		w.Write([]byte(`{"message": "Invalid username or password"}`))
 		w.WriteHeader(401)
-		return
+		return fmt.Errorf("no basic auth present")
 	}
 	if p != rss.Password {
 		fmt.Printf("Password provided is correct: %s\n", u)
 		w.Write([]byte(`{"message": "Invalid username or password"}`))
 		w.WriteHeader(401)
-		return
+		return fmt.Errorf("no basic auth present")
 	}
+	return nil
 }
 
 func (rss *RSSInit) CreateItemAPI(w http.ResponseWriter, r *http.Request) {
