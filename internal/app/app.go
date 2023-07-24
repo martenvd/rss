@@ -42,22 +42,22 @@ func (rss *RSSInit) BasicAuth(w http.ResponseWriter, r *http.Request) error {
 	if !ok {
 		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
 		fmt.Println("Error parsing basic auth")
-		w.WriteHeader(401)
-		w.Write([]byte(`{"message": "No basic auth present"}`))
+		w.WriteHeader(403)
+		w.Write([]byte(`{"message": "Forbidden"}`))
 		return fmt.Errorf("no basic auth present")
 	}
 	if u != rss.Username {
 		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
 		fmt.Printf("Username provided is correct: %s\n", u)
-		w.Write([]byte(`{"message": "Invalid username or password"}`))
-		w.WriteHeader(401)
-		return fmt.Errorf("no basic auth present")
+		w.WriteHeader(403)
+		w.Write([]byte(`{"message": "Forbidden"}`))
+		return fmt.Errorf("wrong username")
 	}
 	if p != rss.Password {
 		fmt.Printf("Password provided is correct: %s\n", u)
-		w.Write([]byte(`{"message": "Invalid username or password"}`))
-		w.WriteHeader(401)
-		return fmt.Errorf("no basic auth present")
+		w.Write([]byte(`{"message": "Forbidden"}`))
+		w.WriteHeader(403)
+		return fmt.Errorf("wrong password")
 	}
 	return nil
 }
