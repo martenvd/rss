@@ -4,6 +4,8 @@ package app
 
 import (
 	"context"
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -23,12 +25,6 @@ type RSSInit struct {
 }
 
 func (rss *RSSInit) CreateIndex(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-
-	err := rss.BasicAuth(w, r)
-	if err != nil {
-		return
-	}
 
 	w.Header().Set("Content-Type", "application/xml")
 	w.WriteHeader(200)
@@ -37,29 +33,27 @@ func (rss *RSSInit) CreateIndex(w http.ResponseWriter, r *http.Request) {
 	w.Write(feed)
 }
 
-func (rss *RSSInit) BasicAuth(w http.ResponseWriter, r *http.Request) error {
-	u, p, ok := r.BasicAuth()
-	if !ok {
-		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
-		fmt.Println("Error parsing basic auth")
-		w.WriteHeader(403)
-		w.Write([]byte(`{"message": "Forbidden"}`))
-		return fmt.Errorf("no basic auth present")
-	}
-	if u != rss.Username {
-		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
-		fmt.Printf("Username provided is correct: %s\n", u)
-		w.WriteHeader(403)
-		w.Write([]byte(`{"message": "Forbidden"}`))
-		return fmt.Errorf("wrong username")
-	}
-	if p != rss.Password {
-		fmt.Printf("Password provided is correct: %s\n", u)
-		w.Write([]byte(`{"message": "Forbidden"}`))
-		w.WriteHeader(403)
-		return fmt.Errorf("wrong password")
-	}
-	return nil
+func (rss *RSSInit) BasicAuth(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		username, password, ok := r.BasicAuth()
+		if ok {
+			usernameHash := sha256.Sum256([]byte(username))
+			passwordHash := sha256.Sum256([]byte(password))
+			expectedUsernameHash := sha256.Sum256([]byte(rss.Username))
+			expectedPasswordHash := sha256.Sum256([]byte(rss.Password))
+
+			usernameMatch := (subtle.ConstantTimeCompare(usernameHash[:], expectedUsernameHash[:]) == 1)
+			passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1)
+
+			if usernameMatch && passwordMatch {
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
+
+		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	})
 }
 
 func (rss *RSSInit) CreateItemAPI(w http.ResponseWriter, r *http.Request) {
@@ -128,6 +122,14 @@ func (rss *RSSInit) CreateRSSFeed() []byte {
 		items[i], items[j] = items[j], items[i]
 	}
 
+	var pubDate string
+
+	if len(items) == 0 {
+		pubDate = ""
+	} else {
+		pubDate = items[0].PubDate
+	}
+
 	rssFeed.Channels = []Channel{
 		{
 			XMLName:     xml.Name{Space: "channel"},
@@ -140,7 +142,9 @@ func (rss *RSSInit) CreateRSSFeed() []byte {
 				Rel:  "self",
 				Type: "application/rss+xml",
 			},
-			Item: items,
+			LastBuildDate: pubDate,
+			PubDate:       pubDate,
+			Item:          items,
 		},
 	}
 

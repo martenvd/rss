@@ -36,9 +36,9 @@ func main() {
 
 	fmt.Println("The RSS feed is running!")
 
-	rootPath := fmt.Sprintf("/%s", os.Getenv("ROOT_PATH"))
+	rootPath := os.Getenv("ROOT_PATH")
 
-	http.HandleFunc(rootPath, rssInit.CreateIndex)
+	http.HandleFunc(fmt.Sprintf("/%s", rootPath), rssInit.BasicAuth(rssInit.CreateIndex))
 	http.HandleFunc(fmt.Sprintf("/api%s", rootPath), rssInit.CreateItemAPI)
 	http.HandleFunc("/health", rssInit.HealthCheck)
 	http.ListenAndServe(":8082", nil)

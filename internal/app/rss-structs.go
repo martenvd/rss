@@ -9,13 +9,15 @@ type Rss struct {
 }
 
 type Channel struct {
-	XMLName     xml.Name `xml:"channel"`
-	Title       string   `xml:"title"`
-	Link        string   `xml:"link"`
-	Description string   `xml:"description"`
-	Atom        string   `xml:"xmlns:atom,attr"`
-	AtomLink    AtomLink `xml:"atom:link"`
-	Item        []Item   `xml:"item"`
+	XMLName       xml.Name `xml:"channel"`
+	Title         string   `xml:"title"`
+	Link          string   `xml:"link"`
+	Description   string   `xml:"description"`
+	Atom          string   `xml:"xmlns:atom,attr"`
+	AtomLink      AtomLink `xml:"atom:link"`
+	LastBuildDate string   `xml:"lastBuildDate"`
+	PubDate       string   `xml:"pubDate"`
+	Item          []Item   `xml:"item"`
 }
 
 type AtomLink struct {
