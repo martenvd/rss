@@ -8,6 +8,8 @@ az webapp create --resource-group '<your-resource-group-name>' \
                  --multicontainer-config-type compose \
                  --multicontainer-config-file docker-compose-app-service.yml
 
+az webapp config appsettings set --resource-group '<your-resource-group-name>' --name <app-name> --settings WEBSITES_ENABLE_APP_SERVICE_STORAGE=TRUE
+
 # az webapp config container set --resource-group '<your-resource-group-name>' \
 #                  --subscription "*************" \
 #                  --name '<your-app-service-name>' \
