@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,6 +15,8 @@ import (
 func (rss *RSSInit) WriteToMongoDatabase(item ItemBSON, database string, collection string) error {
 	var c mongo.Client
 	var ctx context.Context
+
+	now := time.Now().Format("Mon, 02 Jan 2006 15:04:05 -0700")
 
 	if rss.DatabaseType == "mongodb4" {
 		ctx = context.Background()
@@ -55,7 +58,7 @@ func (rss *RSSInit) WriteToMongoDatabase(item ItemBSON, database string, collect
 			{Key: "title", Value: item.Title},
 			{Key: "link", Value: item.Link},
 			{Key: "description", Value: item.Description},
-			{Key: "pubDate", Value: item.PubDate},
+			{Key: "pubDate", Value: now},
 		}}}
 	options := options.Update().SetUpsert(true)
 

@@ -9,7 +9,9 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
+	"time"
 )
 
 type RSSInit struct {
@@ -85,13 +87,22 @@ func (rss *RSSInit) CreateRSSFeed() []byte {
 	if strings.Contains(rss.DatabaseType, "mongo") {
 		items = rss.GetAllFromMongoDatabaseAndConvert()
 	} else {
-		items = rss.GetAllFromMSSQLDatabaseAndConvert(ItemJSON{Title: "test", Link: "link", Description: "Description", PubDate: "vandaag"}, "feeditems")
+		items = rss.GetAllFromMSSQLDatabaseAndConvert("feeditems")
 		fmt.Println(items)
 	}
 
-	for i, j := 0, len(items)-1; i < j; i, j = i+1, j-1 {
-		items[i], items[j] = items[j], items[i]
-	}
+	sort.Slice(items, func(i, j int) bool {
+		format := "Mon, 02 Jan 2006 15:04:05 -0700"
+		parsedTimeI, err := time.Parse(format, items[i].PubDate)
+		if err != nil {
+			fmt.Println(err)
+		}
+		parsedTimeJ, err := time.Parse(format, items[j].PubDate)
+		if err != nil {
+			fmt.Println(err)
+		}
+		return parsedTimeJ.Before(parsedTimeI)
+	})
 
 	var pubDate string
 

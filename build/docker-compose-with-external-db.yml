@@ -6,24 +6,11 @@ services:
     ports:
       - "8082:8082"
     environment:
-      # - DATABASE_TYPE=mongodb4
-      # - MONGODB_URI='mongodb://rss-feed-test-db:***************@***********.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@?ssl=true&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@rss-feed-test-db@'
       - DATABASE_TYPE=mssql
       - MSSQL_CONNECTION_STRING=server=********.database.windows.net;user id=testadmin;password=**********;port=1433;database=rssfeed-db;
       - BASICAUTH_USERNAME=test
       - BASICAUTH_PASSWORD=test
       - RSS_TITLE=testfeed
       - RSS_DESCRIPTION=Test feed description
-
-  # mongo:
-  #   image: mongo:6.0.8
-  #   restart: always
-  #   container_name: mongo
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: test
-  #     MONGO_INITDB_ROOT_PASSWORD: test
-  #   volumes:
-  #     - ${WEBAPP_STORAGE_HOME}/data:/data/db:rw
-
-# volumes:
-#   mongovolume_rss:
+      # - DATABASE_TYPE=mongodb4
+      # - MONGODB_URI='mongodb://rss-feed-test-db:***************@***********.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@?ssl=true&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@rss-feed-test-db@'
