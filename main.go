@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -16,22 +15,22 @@ func main() {
 	uri := os.Getenv("MONGODB_URI")
 
 	// export MONGODB_URI="mongodb://username:password@localhost:27017"
-	if uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
-	}
-
 	username := os.Getenv("BASICAUTH_USERNAME")
 	password := os.Getenv("BASICAUTH_PASSWORD")
+	databaseType := os.Getenv("DATABASE_TYPE")
+	connectionString := os.Getenv("MSSQL_CONNECTION_STRING")
 
 	rssTitle := os.Getenv("RSS_TITLE")
 	rssDescription := os.Getenv("RSS_DESCRIPTION")
 
 	rssInit := app.RSSInit{
-		DatabaseUri:    uri,
-		Username:       username,
-		Password:       password,
-		RssTitle:       rssTitle,
-		RssDescription: rssDescription,
+		DatabaseType:     databaseType,
+		ConnectionString: connectionString,
+		DatabaseUri:      uri,
+		Username:         username,
+		Password:         password,
+		RssTitle:         rssTitle,
+		RssDescription:   rssDescription,
 	}
 
 	fmt.Println("The RSS feed is running!")

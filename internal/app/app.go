@@ -3,25 +3,23 @@
 package app
 
 import (
-	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"net/http"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"strings"
 )
 
 type RSSInit struct {
-	DatabaseUri    string
-	Username       string
-	Password       string
-	RssTitle       string
-	RssDescription string
+	DatabaseType     string
+	ConnectionString string
+	DatabaseUri      string
+	Username         string
+	Password         string
+	RssTitle         string
+	RssDescription   string
 }
 
 func (rss *RSSInit) CreateIndex(w http.ResponseWriter, r *http.Request) {
@@ -68,45 +66,11 @@ func (rss *RSSInit) CreateItemAPI(w http.ResponseWriter, r *http.Request) {
 
 	bsonItem := ItemBSON(jsonItem)
 
-	rss.WriteToDatabase(bsonItem, "rss", "feeditems")
-}
-
-func (rss *RSSInit) WriteToDatabase(item ItemBSON, database string, collection string) error {
-	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(rss.DatabaseUri).SetServerAPIOptions(serverAPI)
-	client, err := mongo.Connect(context.TODO(), opts)
-	if err != nil {
-		return err
+	if strings.Contains(rss.DatabaseType, "mongo") {
+		rss.WriteToMongoDatabase(bsonItem, "rss", "feeditems")
+	} else {
+		rss.WriteToMSSQLDatabase(jsonItem, "feeditems")
 	}
-	defer func() {
-		if err = client.Disconnect(context.TODO()); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
-	coll := client.Database(database).Collection(collection)
-	filter := bson.D{
-		{Key: "title", Value: item.Title},
-		{Key: "link", Value: item.Link},
-		{Key: "description", Value: item.Description},
-	}
-	insert := bson.D{
-		{Key: "$setOnInsert", Value: bson.D{
-			{Key: "title", Value: item.Title},
-			{Key: "link", Value: item.Link},
-			{Key: "description", Value: item.Description},
-			{Key: "pubDate", Value: item.PubDate},
-		}}}
-	options := options.Update().SetUpsert(true)
-
-	result, err := coll.UpdateOne(context.TODO(), filter, insert, options)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Document inserted with ID: %s\n", result.UpsertedID)
-
-	return nil
 }
 
 func (rss *RSSInit) CreateRSSFeed() []byte {
@@ -116,7 +80,14 @@ func (rss *RSSInit) CreateRSSFeed() []byte {
 		Channels: []Channel{},
 	}
 
-	items := rss.GetAllFromDatabaseAndConvert()
+	var items []Item
+
+	if strings.Contains(rss.DatabaseType, "mongo") {
+		items = rss.GetAllFromMongoDatabaseAndConvert()
+	} else {
+		items = rss.GetAllFromMSSQLDatabaseAndConvert(ItemJSON{Title: "test", Link: "link", Description: "Description", PubDate: "vandaag"}, "feeditems")
+		fmt.Println(items)
+	}
 
 	for i, j := 0, len(items)-1; i < j; i, j = i+1, j-1 {
 		items[i], items[j] = items[j], items[i]
@@ -151,47 +122,6 @@ func (rss *RSSInit) CreateRSSFeed() []byte {
 	feed, _ := xml.MarshalIndent(rssFeed, "", " ")
 
 	return feed
-
-}
-
-func (rss *RSSInit) GetAllFromDatabaseAndConvert() []Item {
-	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(rss.DatabaseUri).SetServerAPIOptions(serverAPI)
-	client, err := mongo.Connect(context.TODO(), opts)
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer func() {
-		if err = client.Disconnect(context.TODO()); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
-	coll := client.Database("rss").Collection("feeditems")
-
-	cursor, err := coll.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var results []ItemBSON
-	if err = cursor.All(context.TODO(), &results); err != nil {
-		fmt.Println(err)
-	}
-
-	var items []Item
-
-	for _, value := range results {
-		items = append(items, Item{
-			XMLName:     xml.Name{Local: "item"},
-			Title:       value.Title,
-			Link:        value.Link,
-			Description: value.Description,
-			PubDate:     value.PubDate,
-		})
-	}
-
-	return items
 
 }
 
