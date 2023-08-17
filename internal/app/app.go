@@ -22,6 +22,7 @@ type RSSInit struct {
 	Password         string
 	RssTitle         string
 	RssDescription   string
+	RootPath         string
 }
 
 func (rss *RSSInit) CreateIndex(w http.ResponseWriter, r *http.Request) {
@@ -58,20 +59,23 @@ func (rss *RSSInit) BasicAuth(next http.HandlerFunc) http.HandlerFunc {
 
 func (rss *RSSInit) CreateItemAPI(w http.ResponseWriter, r *http.Request) {
 
-	var jsonItem ItemJSON
+	if r.URL.Path == fmt.Sprintf("/api/%s", rss.RootPath) {
 
-	err := json.NewDecoder(r.Body).Decode(&jsonItem)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+		var jsonItem ItemJSON
 
-	bsonItem := ItemBSON(jsonItem)
+		err := json.NewDecoder(r.Body).Decode(&jsonItem)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
-	if strings.Contains(rss.DatabaseType, "mongo") {
-		rss.WriteToMongoDatabase(bsonItem, "rss", "feeditems")
-	} else {
-		rss.WriteToMSSQLDatabase(jsonItem, "feeditems")
+		bsonItem := ItemBSON(jsonItem)
+
+		if strings.Contains(rss.DatabaseType, "mongo") {
+			rss.WriteToMongoDatabase(bsonItem, "rss", "feeditems")
+		} else {
+			rss.WriteToMSSQLDatabase(jsonItem, "feeditems")
+		}
 	}
 }
 

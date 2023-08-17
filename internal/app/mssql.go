@@ -9,6 +9,8 @@ import (
 	"log"
 	"time"
 
+	_ "time/tzdata"
+
 	_ "github.com/microsoft/go-mssqldb"
 )
 
@@ -79,7 +81,7 @@ func (rss *RSSInit) WriteToMSSQLDatabase(item ItemJSON, table string) error {
 			return err
 		}
 	} else {
-		fmt.Println("Count", count)
+		fmt.Println("The item to be inserted already exists.")
 	}
 
 	return nil

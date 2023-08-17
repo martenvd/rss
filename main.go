@@ -22,6 +22,7 @@ func main() {
 
 	rssTitle := os.Getenv("RSS_TITLE")
 	rssDescription := os.Getenv("RSS_DESCRIPTION")
+	rootPath := os.Getenv("ROOT_PATH")
 
 	rssInit := app.RSSInit{
 		DatabaseType:     databaseType,
@@ -31,14 +32,13 @@ func main() {
 		Password:         password,
 		RssTitle:         rssTitle,
 		RssDescription:   rssDescription,
+		RootPath:         rootPath,
 	}
 
 	fmt.Println("The RSS feed is running!")
 
-	rootPath := os.Getenv("ROOT_PATH")
-
 	http.HandleFunc(fmt.Sprintf("/%s", rootPath), rssInit.BasicAuth(rssInit.CreateIndex))
-	http.HandleFunc(fmt.Sprintf("/api%s", rootPath), rssInit.CreateItemAPI)
+	http.HandleFunc(fmt.Sprintf("/api/%s", rootPath), rssInit.CreateItemAPI)
 	http.HandleFunc("/health", rssInit.HealthCheck)
 	http.ListenAndServe(":8082", nil)
 
