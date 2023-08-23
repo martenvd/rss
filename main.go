@@ -20,6 +20,10 @@ func main() {
 	databaseType := os.Getenv("DATABASE_TYPE")
 	connectionString := os.Getenv("MSSQL_CONNECTION_STRING")
 
+	if len(databaseType) == 0 {
+		databaseType = "mongodb6"
+	}
+
 	rssTitle := os.Getenv("RSS_TITLE")
 	rssDescription := os.Getenv("RSS_DESCRIPTION")
 	rootPath := os.Getenv("ROOT_PATH")
@@ -35,6 +39,7 @@ func main() {
 		RootPath:         rootPath,
 	}
 
+	fmt.Printf("Rss feed starting with %s driver.\n", databaseType)
 	fmt.Println("The RSS feed is running!")
 
 	http.HandleFunc(fmt.Sprintf("/%s", rootPath), rssInit.BasicAuth(rssInit.CreateIndex))

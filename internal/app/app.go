@@ -92,7 +92,6 @@ func (rss *RSSInit) CreateRSSFeed() []byte {
 		items = rss.GetAllFromMongoDatabaseAndConvert()
 	} else {
 		items = rss.GetAllFromMSSQLDatabaseAndConvert("feeditems")
-		fmt.Println(items)
 	}
 
 	sort.Slice(items, func(i, j int) bool {
