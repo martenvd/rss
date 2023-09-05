@@ -1,7 +1,7 @@
 # RSS feed creator
 The RSS feed creator does exactly what it is called, it creates an RSS feed which is accessible on port 8082 and can be filled using the feed item API.
 
-## Usage
+## Setup
 For local running and testing purposes:
 ```
 make run
@@ -33,4 +33,10 @@ BASICAUTH_USERNAME=test # required, the username you want for the basic authenti
 BASICAUTH_PASSWORD=test # required, the password you want for the basic authentication
 RSS_TITLE=testfeed # optional, the title that the RSS feed will have
 RSS_DESCRIPTION=Test feed description # optional, the RSS feed description
+```
+
+## Usage
+An example of Adding an item to the RSS feed can be found here:
+```
+curl -X POST @examples/test.json http://localhost:8082/api/
 ```
