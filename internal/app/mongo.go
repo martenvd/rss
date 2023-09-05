@@ -15,10 +15,7 @@ import (
 )
 
 func (rss *RSSInit) WriteToMongoDatabase(item ItemBSON, database string, collection string) error {
-	var c mongo.Client
 	var ctx context.Context
-
-	now := time.Now().Format("Mon, 02 Jan 2006 15:04:05 -0700")
 
 	if rss.DatabaseType == "mongodb4" {
 		ctx = context.Background()
@@ -34,6 +31,11 @@ func (rss *RSSInit) WriteToMongoDatabase(item ItemBSON, database string, collect
 			log.Fatalf("unable to connect %v", err)
 		}
 
+		err = rss.AddToMongoDatabase(item, c, ctx)
+		if err != nil {
+			log.Printf("Adding item to database resulted in the following error: %s", err)
+		}
+
 	} else if rss.DatabaseType == "mongodb6" {
 		ctx = context.TODO()
 		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
@@ -47,29 +49,12 @@ func (rss *RSSInit) WriteToMongoDatabase(item ItemBSON, database string, collect
 				fmt.Println(err)
 			}
 		}()
-	}
 
-	coll := c.Database(database).Collection(collection)
-	filter := bson.D{
-		{Key: "title", Value: item.Title},
-		{Key: "link", Value: item.Link},
-		{Key: "description", Value: item.Description},
+		err = rss.AddToMongoDatabase(item, c, ctx)
+		if err != nil {
+			log.Printf("Adding item to database resulted in the following error: %s", err)
+		}
 	}
-	insert := bson.D{
-		{Key: "$setOnInsert", Value: bson.D{
-			{Key: "title", Value: item.Title},
-			{Key: "link", Value: item.Link},
-			{Key: "description", Value: item.Description},
-			{Key: "pubDate", Value: now},
-		}}}
-	options := options.Update().SetUpsert(true)
-
-	result, err := coll.UpdateOne(ctx, filter, insert, options)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Document inserted with ID: %s\n", result.UpsertedID)
 
 	return nil
 }
@@ -146,4 +131,31 @@ func (rss *RSSInit) GetMongoFindResults(c *mongo.Client, ctx context.Context) []
 	}
 
 	return items
+}
+
+func (rss *RSSInit) AddToMongoDatabase(item ItemBSON, c *mongo.Client, ctx context.Context) error {
+	now := time.Now().Format("Mon, 02 Jan 2006 15:04:05 -0700")
+	coll := c.Database("rss").Collection("feeditems")
+	filter := bson.D{
+		{Key: "title", Value: item.Title},
+		{Key: "link", Value: item.Link},
+		{Key: "description", Value: item.Description},
+	}
+	insert := bson.D{
+		{Key: "$setOnInsert", Value: bson.D{
+			{Key: "title", Value: item.Title},
+			{Key: "link", Value: item.Link},
+			{Key: "description", Value: item.Description},
+			{Key: "pubDate", Value: now},
+		}}}
+	options := options.Update().SetUpsert(true)
+
+	result, err := coll.UpdateOne(ctx, filter, insert, options)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Document inserted with ID: %s\n", result.UpsertedID)
+
+	return nil
 }
