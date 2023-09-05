@@ -134,7 +134,9 @@ func (rss *RSSInit) GetMongoFindResults(c *mongo.Client, ctx context.Context) []
 }
 
 func (rss *RSSInit) AddToMongoDatabase(item ItemBSON, c *mongo.Client, ctx context.Context) error {
-	now := time.Now().Format("Mon, 02 Jan 2006 15:04:05 -0700")
+	loc, _ := time.LoadLocation("Europe/Amsterdam")
+	now := time.Now().In(loc).Format("Mon, 02 Jan 2006 15:04:05 -0700")
+
 	coll := c.Database("rss").Collection("feeditems")
 	filter := bson.D{
 		{Key: "title", Value: item.Title},
