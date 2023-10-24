@@ -36,7 +36,7 @@ RSS_DESCRIPTION=Test feed description # optional, the RSS feed description
 ```
 
 ## Usage
-An example of Adding an item to the RSS feed can be found here:
+An example of adding an item to the RSS feed can be found here:
 ```
 curl -X POST -d @examples/test.json http://localhost:8082/api/
 ```
